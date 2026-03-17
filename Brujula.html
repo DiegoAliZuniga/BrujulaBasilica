@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Brújula hacia destino</title>
+  <style>
+    :root {
+      --size: 260px;
+      --bg: #0f172a;
+      --card: #111827;
+      --text: #e5e7eb;
+      --muted: #94a3b8;
+      --accent: #22c55e;
+      --danger: #ef4444;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, Helvetica, sans-serif;
+      background: linear-gradient(180deg, #0b1220, #111827);
+      color: var(--text);
+      min-height: 100vh;
+      display: grid;
+      place-items: center;
+      padding: 24px;
+    }
+
+    .app {
+      width: min(100%, 420px);
+      background: rgba(17, 24, 39, 0.9);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 20px;
+      padding: 24px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
+      text-align: center;
+    }
+
+    h1 {
+      margin: 0 0 8px;
+      font-size: 1.6rem;
+    }
+
+    .subtitle {
+      margin: 0 0 18px;
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .compass-wrap {
+      display: grid;
+      place-items: center;
+      margin: 20px 0;
+    }
+
+    .compass {
+      width: var(--size);
+      height: var(--size);
+      border-radius: 50%;
+      position: relative;
+      border: 10px solid rgba(255,255,255,0.08);
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.06) 0 8%, transparent 8% 100%),
+        conic-gradient(
+          from 0deg,
+          rgba(255,255,255,0.05) 0deg 90deg,
+          rgba(255,255,255,0.02) 90deg 180deg,
+          rgba(255,255,255,0.05) 180deg 270deg,
+          rgba(255,255,255,0.02) 270deg 360deg
+        );
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .ring-label {
+      position: absolute;
+      font-weight: bold;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .n { top: 10px; left: 50%; transform: translateX(-50%); color: #f87171; }
+    .s { bottom: 10px; left: 50%; transform: translateX(-50%); }
+    .e { right: 12px; top: 50%; transform: translateY(-50%); }
+    .w { left: 12px; top: 50%; transform: translateY(-50%); }
+
+    .needle {
+      position: absolute;
+      width: 14px;
+      height: 120px;
+      transform-origin: 50% 85%;
+      transition: transform 0.2s linear;
+      z-index: 3;
+    }
+
+    .needle::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 10px solid transparent;
+      border-right: 10px solid transparent;
+      border-bottom: 70px solid var(--accent);
+      filter: drop-shadow(0 0 8px rgba(34,197,94,0.5));
+    }
+
+    .needle::after {
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 0;
+      height: 0;
+      border-left: 8px solid transparent;
+      border-right: 8px solid transparent;
+      border-top: 40px solid #f87171;
+    }
+
+    .center-dot {
+      width: 18px;
+      height: 18px;
+      background: white;
+      border-radius: 50%;
+      z-index: 4;
+      box-shadow: 0 0 0 6px rgba(255,255,255,0.08);
+    }
+
+    .info {
+      display: grid;
+      gap: 10px;
+      margin-top: 20px;
+      text-align: left;
+      font-size: 0.95rem;
+    }
+
+    .row {
+      background: rgba(255,255,255,0.04);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .label {
+      color: var(--muted);
+      display: block;
+      margin-bottom: 4px;
+      font-size: 0.85rem;
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+      margin-top: 18px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    button {
+      border: none;
+      border-radius: 12px;
+      padding: 12px 16px;
+      font-size: 0.95rem;
+      cursor: pointer;
+      background: var(--accent);
+      color: #052e16;
+      font-weight: bold;
+    }
+
+    button.secondary {
+      background: #334155;
+      color: white;
+    }
+
+    .status {
+      margin-top: 14px;
+      font-size: 0.92rem;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .error {
+      color: #fca5a5;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <h1>Brújula al destino</h1>
+    <p class="subtitle">
+      Apunta hacia V37P+JQW<br>
+      <small>9°51'50.9"N, 83°54'47.8"W</small>
+    </p>
+
+    <div class="compass-wrap">
+      <div class="compass">
+        <div class="ring-label n">N</div>
+        <div class="ring-label s">S</div>
+        <div class="ring-label e">E</div>
+        <div class="ring-label w">W</div>
+        <div class="needle" id="needle"></div>
+        <div class="center-dot"></div>
+      </div>
+    </div>
+
+    <div class="info">
+      <div class="row">
+        <span class="label">Dirección al destino</span>
+        <span id="bearingText">—</span>
+      </div>
+      <div class="row">
+        <span class="label">Distancia aproximada</span>
+        <span id="distanceText">—</span>
+      </div>
+      <div class="row">
+        <span class="label">Orientación del teléfono</span>
+        <span id="headingText">—</span>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button id="startBtn">Activar brújula</button>
+      <button id="mapsBtn" class="secondary">Abrir en Google Maps</button>
+    </div>
+
+    <div id="status" class="status">
+      Presiona “Activar brújula” y permite ubicación/orientación.
+    </div>
+  </div>
+
+  <script>
+    // Destino: V37P+JQW
+    const TARGET_LAT = 9.8641388889;
+    const TARGET_LON = -83.9132777778;
+
+    const needle = document.getElementById("needle");
+    const bearingText = document.getElementById("bearingText");
+    const distanceText = document.getElementById("distanceText");
+    const headingText = document.getElementById("headingText");
+    const statusEl = document.getElementById("status");
+    const startBtn = document.getElementById("startBtn");
+    const mapsBtn = document.getElementById("mapsBtn");
+
+    let userLat = null;
+    let userLon = null;
+    let deviceHeading = null; // grados desde el norte
+    let targetBearing = null; // grados desde el norte
+
+    function toRadians(deg) {
+      return deg * Math.PI / 180;
+    }
+
+    function toDegrees(rad) {
+      return rad * 180 / Math.PI;
+    }
+
+    function normalizeDeg(deg) {
+      return (deg % 360 + 360) % 360;
+    }
+
+    // Rumbo inicial entre dos coordenadas
+    function calculateBearing(lat1, lon1, lat2, lon2) {
+      const phi1 = toRadians(lat1);
+      const phi2 = toRadians(lat2);
+      const deltaLambda = toRadians(lon2 - lon1);
+
+      const y = Math.sin(deltaLambda) * Math.cos(phi2);
+      const x =
+        Math.cos(phi1) * Math.sin(phi2) -
+        Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
+
+      return normalizeDeg(toDegrees(Math.atan2(y, x)));
+    }
+
+    // Distancia Haversine en metros
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+      const R = 6371000;
+      const dLat = toRadians(lat2 - lat1);
+      const dLon = toRadians(lon2 - lon1);
+      const a =
+        Math.sin(dLat / 2) ** 2 +
+        Math.cos(toRadians(lat1)) *
+        Math.cos(toRadians(lat2)) *
+        Math.sin(dLon / 2) ** 2;
+
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      return R * c;
+    }
+
+    function updateCompass() {
+      if (userLat == null || userLon == null) return;
+
+      targetBearing = calculateBearing(userLat, userLon, TARGET_LAT, TARGET_LON);
+      const distance = calculateDistance(userLat, userLon, TARGET_LAT, TARGET_LON);
+
+      bearingText.textContent = `${targetBearing.toFixed(1)}°`;
+      distanceText.textContent =
+        distance >= 1000
+          ? `${(distance / 1000).toFixed(2)} km`
+          : `${Math.round(distance)} m`;
+
+      if (deviceHeading == null) {
+        headingText.textContent = "No disponible";
+        // Si no hay orientación, al menos mostramos la aguja con el rumbo absoluto.
+        needle.style.transform = `rotate(${targetBearing}deg)`;
+        return;
+      }
+
+      headingText.textContent = `${deviceHeading.toFixed(1)}°`;
+
+      // Rotación relativa: hacia dónde girar la aguja según orientación actual
+      const relativeAngle = normalizeDeg(targetBearing - deviceHeading);
+      needle.style.transform = `rotate(${relativeAngle}deg)`;
+    }
+
+    function setStatus(msg, isError = false) {
+      statusEl.textContent = msg;
+      statusEl.className = isError ? "status error" : "status";
+    }
+
+    function handleOrientation(event) {
+      let heading = null;
+
+      // iPhone / Safari
+      if (typeof event.webkitCompassHeading === "number") {
+        heading = event.webkitCompassHeading;
+      }
+      // Android y otros
+      else if (event.alpha != null) {
+        heading = 360 - event.alpha;
+      }
+
+      if (heading != null && !isNaN(heading)) {
+        deviceHeading = normalizeDeg(heading);
+        updateCompass();
+      }
+    }
+
+    function requestLocation() {
+      if (!navigator.geolocation) {
+        setStatus("Tu navegador no soporta geolocalización.", true);
+        return;
+      }
+
+      navigator.geolocation.watchPosition(
+        (pos) => {
+          userLat = pos.coords.latitude;
+          userLon = pos.coords.longitude;
+          updateCompass();
+          setStatus("Ubicación activa. Mueve el teléfono en forma de 8 si la brújula no se estabiliza.");
+        },
+        (err) => {
+          setStatus("No se pudo obtener la ubicación: " + err.message, true);
+        },
+        {
+          enableHighAccuracy: true,
+          maximumAge: 1000,
+          timeout: 10000
+        }
+      );
+    }
+
+    async function requestOrientation() {
+      try {
+        // iOS 13+
+        if (
+          typeof DeviceOrientationEvent !== "undefined" &&
+          typeof DeviceOrientationEvent.requestPermission === "function"
+        ) {
+          const permission = await DeviceOrientationEvent.requestPermission();
+          if (permission === "granted") {
+            window.addEventListener("deviceorientation", handleOrientation, true);
+            setStatus("Orientación activada.");
+          } else {
+            setStatus("Permiso de orientación denegado. La aguja mostrará solo el rumbo absoluto.", true);
+          }
+        } else {
+          // Android / otros
+          window.addEventListener("deviceorientationabsolute", handleOrientation, true);
+          window.addEventListener("deviceorientation", handleOrientation, true);
+          setStatus("Orientación activada.");
+        }
+      } catch (e) {
+        setStatus("No se pudo activar la orientación: " + e.message, true);
+      }
+    }
+
+    startBtn.addEventListener("click", async () => {
+      setStatus("Solicitando permisos...");
+      requestLocation();
+      await requestOrientation();
+    });
+
+    mapsBtn.addEventListener("click", () => {
+      const url = `https://www.google.com/maps?q=${TARGET_LAT},${TARGET_LON}`;
+      window.open(url, "_blank");
+    });
+  </script>
+</body>
+</html>
