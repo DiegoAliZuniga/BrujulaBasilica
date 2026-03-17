@@ -3,255 +3,453 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Brújula hacia destino</title>
+  <title>Brújula al destino</title>
+
+  <!-- Leaflet -->
+  <link
+    rel="stylesheet"
+    href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    crossorigin=""
+  />
+  <script
+    src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+    crossorigin=""
+  ></script>
+
   <style>
-    :root {
-      --size: 260px;
-      --bg: #0f172a;
-      --card: #111827;
-      --text: #e5e7eb;
-      --muted: #94a3b8;
-      --accent: #22c55e;
-      --danger: #ef4444;
+    :root{
+      --bg1:#08111f;
+      --bg2:#0f1b2e;
+      --card:rgba(17, 24, 39, 0.75);
+      --line:rgba(255,255,255,.08);
+      --text:#ecf3ff;
+      --muted:#9fb3cc;
+      --accent:#55c2ff;
+      --accent2:#35e0a1;
+      --danger:#ff7b7b;
+      --shadow:0 18px 40px rgba(0,0,0,.35);
+      --radius:24px;
+      --compass-size:280px;
     }
 
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Arial, Helvetica, sans-serif;
-      background: linear-gradient(180deg, #0b1220, #111827);
-      color: var(--text);
-      min-height: 100vh;
-      display: grid;
-      place-items: center;
-      padding: 24px;
-    }
-
-    .app {
-      width: min(100%, 420px);
-      background: rgba(17, 24, 39, 0.9);
-      border: 1px solid rgba(255,255,255,0.08);
-      border-radius: 20px;
-      padding: 24px;
-      box-shadow: 0 20px 50px rgba(0,0,0,0.35);
-      text-align: center;
-    }
-
-    h1 {
-      margin: 0 0 8px;
-      font-size: 1.6rem;
-    }
-
-    .subtitle {
-      margin: 0 0 18px;
-      color: var(--muted);
-      font-size: 0.95rem;
-      line-height: 1.5;
-    }
-
-    .compass-wrap {
-      display: grid;
-      place-items: center;
-      margin: 20px 0;
-    }
-
-    .compass {
-      width: var(--size);
-      height: var(--size);
-      border-radius: 50%;
-      position: relative;
-      border: 10px solid rgba(255,255,255,0.08);
+    *{box-sizing:border-box}
+    html,body{
+      margin:0;
+      padding:0;
+      min-height:100%;
+      font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Arial,sans-serif;
+      color:var(--text);
       background:
-        radial-gradient(circle at center, rgba(255,255,255,0.06) 0 8%, transparent 8% 100%),
+        radial-gradient(circle at top, #17345c 0%, transparent 32%),
+        linear-gradient(180deg, var(--bg1), var(--bg2));
+    }
+
+    body{
+      display:flex;
+      justify-content:center;
+      padding:18px;
+    }
+
+    .phone{
+      width:min(100%, 460px);
+      display:flex;
+      flex-direction:column;
+      gap:16px;
+    }
+
+    .card{
+      background:var(--card);
+      backdrop-filter: blur(18px);
+      border:1px solid var(--line);
+      border-radius:var(--radius);
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    .header{
+      padding:22px 20px 10px;
+      text-align:center;
+    }
+
+    .eyebrow{
+      color:var(--accent2);
+      font-size:.82rem;
+      font-weight:700;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+      margin-bottom:8px;
+    }
+
+    h1{
+      margin:0;
+      font-size:1.55rem;
+      line-height:1.15;
+    }
+
+    .sub{
+      margin:10px auto 0;
+      color:var(--muted);
+      font-size:.95rem;
+      line-height:1.45;
+      max-width:320px;
+    }
+
+    .compass-section{
+      padding:10px 20px 20px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+      gap:16px;
+    }
+
+    .compass-shell{
+      position:relative;
+      width:var(--compass-size);
+      height:var(--compass-size);
+      display:grid;
+      place-items:center;
+    }
+
+    .glow{
+      position:absolute;
+      inset:12%;
+      border-radius:50%;
+      background:radial-gradient(circle, rgba(85,194,255,.17), transparent 65%);
+      filter:blur(12px);
+    }
+
+    .compass{
+      position:relative;
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      border:1px solid rgba(255,255,255,.12);
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,.08) 0 8%, transparent 8% 100%),
+        radial-gradient(circle at center, rgba(255,255,255,.03), rgba(255,255,255,.01) 60%, rgba(255,255,255,.04) 100%),
         conic-gradient(
           from 0deg,
-          rgba(255,255,255,0.05) 0deg 90deg,
-          rgba(255,255,255,0.02) 90deg 180deg,
-          rgba(255,255,255,0.05) 180deg 270deg,
-          rgba(255,255,255,0.02) 270deg 360deg
+          rgba(255,255,255,.055) 0deg 45deg,
+          rgba(255,255,255,.02) 45deg 90deg,
+          rgba(255,255,255,.055) 90deg 135deg,
+          rgba(255,255,255,.02) 135deg 180deg,
+          rgba(255,255,255,.055) 180deg 225deg,
+          rgba(255,255,255,.02) 225deg 270deg,
+          rgba(255,255,255,.055) 270deg 315deg,
+          rgba(255,255,255,.02) 315deg 360deg
         );
-      display: grid;
-      place-items: center;
-      overflow: hidden;
+      box-shadow:
+        inset 0 0 0 10px rgba(255,255,255,.03),
+        inset 0 0 30px rgba(255,255,255,.03);
+      overflow:hidden;
     }
 
-    .ring-label {
-      position: absolute;
-      font-weight: bold;
-      color: var(--muted);
-      font-size: 0.95rem;
+    .tick{
+      position:absolute;
+      left:50%;
+      top:8px;
+      width:2px;
+      height:14px;
+      transform-origin:50% calc(var(--compass-size)/2 - 8px);
+      background:rgba(255,255,255,.15);
     }
 
-    .n { top: 10px; left: 50%; transform: translateX(-50%); color: #f87171; }
-    .s { bottom: 10px; left: 50%; transform: translateX(-50%); }
-    .e { right: 12px; top: 50%; transform: translateY(-50%); }
-    .w { left: 12px; top: 50%; transform: translateY(-50%); }
-
-    .needle {
-      position: absolute;
-      width: 14px;
-      height: 120px;
-      transform-origin: 50% 85%;
-      transition: transform 0.2s linear;
-      z-index: 3;
+    .tick.major{
+      height:20px;
+      width:3px;
+      background:rgba(255,255,255,.26);
     }
 
-    .needle::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 10px solid transparent;
-      border-right: 10px solid transparent;
-      border-bottom: 70px solid var(--accent);
-      filter: drop-shadow(0 0 8px rgba(34,197,94,0.5));
+    .label{
+      position:absolute;
+      font-weight:800;
+      color:var(--muted);
+      font-size:1rem;
+      text-shadow:0 2px 12px rgba(0,0,0,.35);
     }
 
-    .needle::after {
-      content: "";
-      position: absolute;
-      bottom: 0;
-      left: 50%;
-      transform: translateX(-50%);
-      width: 0;
-      height: 0;
-      border-left: 8px solid transparent;
-      border-right: 8px solid transparent;
-      border-top: 40px solid #f87171;
+    .label.n{top:14px;left:50%;transform:translateX(-50%);color:#ff8e8e}
+    .label.s{bottom:14px;left:50%;transform:translateX(-50%)}
+    .label.e{right:16px;top:50%;transform:translateY(-50%)}
+    .label.w{left:16px;top:50%;transform:translateY(-50%)}
+
+    .needle{
+      position:absolute;
+      width:18px;
+      height:150px;
+      left:50%;
+      top:50%;
+      transform:translate(-50%, -50%) rotate(0deg);
+      transform-origin:50% 50%;
+      z-index:5;
+      will-change:transform;
     }
 
-    .center-dot {
-      width: 18px;
-      height: 18px;
-      background: white;
-      border-radius: 50%;
-      z-index: 4;
-      box-shadow: 0 0 0 6px rgba(255,255,255,0.08);
+    .needle .up{
+      position:absolute;
+      left:50%;
+      top:0;
+      transform:translateX(-50%);
+      width:0;height:0;
+      border-left:12px solid transparent;
+      border-right:12px solid transparent;
+      border-bottom:88px solid var(--accent2);
+      filter:drop-shadow(0 0 10px rgba(53,224,161,.35));
     }
 
-    .info {
-      display: grid;
-      gap: 10px;
-      margin-top: 20px;
-      text-align: left;
-      font-size: 0.95rem;
+    .needle .down{
+      position:absolute;
+      left:50%;
+      bottom:0;
+      transform:translateX(-50%);
+      width:0;height:0;
+      border-left:9px solid transparent;
+      border-right:9px solid transparent;
+      border-top:58px solid #ff8e8e;
+      filter:drop-shadow(0 0 10px rgba(255,142,142,.25));
     }
 
-    .row {
-      background: rgba(255,255,255,0.04);
-      border-radius: 12px;
-      padding: 10px 12px;
+    .center-dot{
+      position:absolute;
+      width:20px;
+      height:20px;
+      border-radius:50%;
+      background:#ffffff;
+      z-index:6;
+      box-shadow:0 0 0 8px rgba(255,255,255,.08);
     }
 
-    .label {
-      color: var(--muted);
-      display: block;
-      margin-bottom: 4px;
-      font-size: 0.85rem;
+    .bearing-pill{
+      min-width:160px;
+      text-align:center;
+      padding:10px 16px;
+      border-radius:999px;
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+      font-weight:700;
+      color:var(--text);
     }
 
-    .buttons {
-      display: flex;
-      gap: 10px;
-      margin-top: 18px;
-      flex-wrap: wrap;
-      justify-content: center;
+    .stats{
+      padding:0 16px 18px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
     }
 
-    button {
-      border: none;
-      border-radius: 12px;
-      padding: 12px 16px;
-      font-size: 0.95rem;
-      cursor: pointer;
-      background: var(--accent);
-      color: #052e16;
-      font-weight: bold;
+    .stat{
+      padding:14px;
+      background:rgba(255,255,255,.04);
+      border:1px solid rgba(255,255,255,.06);
+      border-radius:18px;
     }
 
-    button.secondary {
-      background: #334155;
-      color: white;
+    .stat .k{
+      display:block;
+      color:var(--muted);
+      font-size:.78rem;
+      margin-bottom:6px;
     }
 
-    .status {
-      margin-top: 14px;
-      font-size: 0.92rem;
-      color: var(--muted);
-      line-height: 1.45;
+    .stat .v{
+      font-size:1rem;
+      font-weight:700;
     }
 
-    .error {
-      color: #fca5a5;
+    .actions{
+      padding:0 16px 18px;
+      display:grid;
+      gap:10px;
+    }
+
+    button{
+      appearance:none;
+      border:none;
+      cursor:pointer;
+      border-radius:18px;
+      padding:14px 16px;
+      font-size:1rem;
+      font-weight:800;
+      transition:transform .12s ease, opacity .12s ease, background .2s ease;
+    }
+
+    button:active{transform:scale(.98)}
+
+    .primary{
+      color:#062030;
+      background:linear-gradient(135deg, var(--accent2), var(--accent));
+    }
+
+    .secondary{
+      color:var(--text);
+      background:rgba(255,255,255,.06);
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .row-buttons{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:10px;
+    }
+
+    .status{
+      padding:0 18px 18px;
+      color:var(--muted);
+      font-size:.92rem;
+      line-height:1.45;
+      text-align:center;
+    }
+
+    .status.error{color:var(--danger)}
+
+    .map-card{
+      padding:12px;
+    }
+
+    .map-title{
+      padding:6px 6px 12px;
+      font-size:1rem;
+      font-weight:800;
+    }
+
+    #map{
+      height:300px;
+      border-radius:18px;
+      overflow:hidden;
+      border:1px solid rgba(255,255,255,.08);
+    }
+
+    .map-note{
+      color:var(--muted);
+      font-size:.84rem;
+      padding:10px 4px 2px;
+      line-height:1.35;
+    }
+
+    @media (max-width:420px){
+      :root{ --compass-size:250px; }
+      .stats{ grid-template-columns:1fr; }
+      .row-buttons{ grid-template-columns:1fr; }
     }
   </style>
 </head>
 <body>
-  <div class="app">
-    <h1>Brújula al destino</h1>
-    <p class="subtitle">
-      Apunta hacia V37P+JQW<br>
-      <small>9°51'50.9"N, 83°54'47.8"W</small>
-    </p>
-
-    <div class="compass-wrap">
-      <div class="compass">
-        <div class="ring-label n">N</div>
-        <div class="ring-label s">S</div>
-        <div class="ring-label e">E</div>
-        <div class="ring-label w">W</div>
-        <div class="needle" id="needle"></div>
-        <div class="center-dot"></div>
+  <main class="phone">
+    <section class="card">
+      <div class="header">
+        <div class="eyebrow">Brújula inteligente</div>
+        <h1>Apuntar al destino</h1>
+        <p class="sub">
+          Destino: <strong>V37P+JQW</strong><br>
+          9°51'50.9"N, 83°54'47.8"W
+        </p>
       </div>
-    </div>
 
-    <div class="info">
-      <div class="row">
-        <span class="label">Dirección al destino</span>
-        <span id="bearingText">—</span>
-      </div>
-      <div class="row">
-        <span class="label">Distancia aproximada</span>
-        <span id="distanceText">—</span>
-      </div>
-      <div class="row">
-        <span class="label">Orientación del teléfono</span>
-        <span id="headingText">—</span>
-      </div>
-    </div>
+      <div class="compass-section">
+        <div class="compass-shell">
+          <div class="glow"></div>
 
-    <div class="buttons">
-      <button id="startBtn">Activar brújula</button>
-      <button id="mapsBtn" class="secondary">Abrir en Google Maps</button>
-    </div>
+          <div class="compass" id="compass">
+            <div class="label n">N</div>
+            <div class="label s">S</div>
+            <div class="label e">E</div>
+            <div class="label w">W</div>
 
-    <div id="status" class="status">
-      Presiona “Activar brújula” y permite ubicación/orientación.
-    </div>
-  </div>
+            <div class="needle" id="needle">
+              <div class="up"></div>
+              <div class="down"></div>
+            </div>
+
+            <div class="center-dot"></div>
+          </div>
+        </div>
+
+        <div class="bearing-pill" id="bearingPill">Esperando sensores...</div>
+      </div>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="k">Dirección al destino</span>
+          <span class="v" id="bearingText">—</span>
+        </div>
+        <div class="stat">
+          <span class="k">Distancia</span>
+          <span class="v" id="distanceText">—</span>
+        </div>
+        <div class="stat">
+          <span class="k">Orientación del dispositivo</span>
+          <span class="v" id="headingText">—</span>
+        </div>
+        <div class="stat">
+          <span class="k">Precisión GPS</span>
+          <span class="v" id="accuracyText">—</span>
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="primary" id="startBtn">Activar brújula</button>
+        <button class="secondary" id="mapBtn">Mostrar / centrar mapa</button>
+
+        <div class="row-buttons">
+          <button class="secondary" id="recalibrateBtn">Recalibrar</button>
+          <button class="secondary" id="mapsBtn">Abrir en Google Maps</button>
+        </div>
+      </div>
+
+      <div class="status" id="status">
+        Presiona “Activar brújula” y permite ubicación y orientación.
+      </div>
+    </section>
+
+    <section class="card map-card">
+      <div class="map-title">Mapa</div>
+      <div id="map"></div>
+      <div class="map-note">
+        El mapa muestra tu ubicación actual y el destino. En celular, el sitio debe abrirse por HTTPS para que funcionen bien ubicación y sensores.
+      </div>
+    </section>
+  </main>
 
   <script>
-    // Destino: V37P+JQW
+    // ===== DESTINO =====
     const TARGET_LAT = 9.8641388889;
     const TARGET_LON = -83.9132777778;
 
+    // ===== ELEMENTOS =====
     const needle = document.getElementById("needle");
     const bearingText = document.getElementById("bearingText");
     const distanceText = document.getElementById("distanceText");
     const headingText = document.getElementById("headingText");
+    const accuracyText = document.getElementById("accuracyText");
+    const bearingPill = document.getElementById("bearingPill");
     const statusEl = document.getElementById("status");
-    const startBtn = document.getElementById("startBtn");
-    const mapsBtn = document.getElementById("mapsBtn");
 
+    const startBtn = document.getElementById("startBtn");
+    const recalibrateBtn = document.getElementById("recalibrateBtn");
+    const mapsBtn = document.getElementById("mapsBtn");
+    const mapBtn = document.getElementById("mapBtn");
+
+    // ===== ESTADO =====
     let userLat = null;
     let userLon = null;
-    let deviceHeading = null; // grados desde el norte
-    let targetBearing = null; // grados desde el norte
+    let userAccuracy = null;
 
+    let rawHeading = null;          // heading crudo desde el sensor
+    let calibrationOffset = 0;      // offset manual
+    let correctedHeading = null;    // heading corregido
+    let targetBearing = null;
+
+    let displayedNeedleAngle = 0;   // ángulo mostrado, suavizado
+    let animationRunning = false;
+    let watchId = null;
+
+    // mapa
+    let map = null;
+    let userMarker = null;
+    let targetMarker = null;
+    let lineToTarget = null;
+
+    // ===== UTILIDADES =====
     function toRadians(deg) {
       return deg * Math.PI / 180;
     }
@@ -264,7 +462,16 @@
       return (deg % 360 + 360) % 360;
     }
 
-    // Rumbo inicial entre dos coordenadas
+    function shortestAngleDiff(from, to) {
+      // devuelve diferencia en [-180, 180]
+      return ((to - from + 540) % 360) - 180;
+    }
+
+    function smoothAngle(current, target, factor = 0.16) {
+      const diff = shortestAngleDiff(current, target);
+      return normalizeDeg(current + diff * factor);
+    }
+
     function calculateBearing(lat1, lon1, lat2, lon2) {
       const phi1 = toRadians(lat1);
       const phi2 = toRadians(lat2);
@@ -278,11 +485,11 @@
       return normalizeDeg(toDegrees(Math.atan2(y, x)));
     }
 
-    // Distancia Haversine en metros
     function calculateDistance(lat1, lon1, lat2, lon2) {
       const R = 6371000;
       const dLat = toRadians(lat2 - lat1);
       const dLon = toRadians(lon2 - lon1);
+
       const a =
         Math.sin(dLat / 2) ** 2 +
         Math.cos(toRadians(lat1)) *
@@ -293,67 +500,107 @@
       return R * c;
     }
 
-    function updateCompass() {
-      if (userLat == null || userLon == null) return;
-
-      targetBearing = calculateBearing(userLat, userLon, TARGET_LAT, TARGET_LON);
-      const distance = calculateDistance(userLat, userLon, TARGET_LAT, TARGET_LON);
-
-      bearingText.textContent = `${targetBearing.toFixed(1)}°`;
-      distanceText.textContent =
-        distance >= 1000
-          ? `${(distance / 1000).toFixed(2)} km`
-          : `${Math.round(distance)} m`;
-
-      if (deviceHeading == null) {
-        headingText.textContent = "No disponible";
-        // Si no hay orientación, al menos mostramos la aguja con el rumbo absoluto.
-        needle.style.transform = `rotate(${targetBearing}deg)`;
-        return;
-      }
-
-      headingText.textContent = `${deviceHeading.toFixed(1)}°`;
-
-      // Rotación relativa: hacia dónde girar la aguja según orientación actual
-      const relativeAngle = normalizeDeg(targetBearing - deviceHeading);
-      needle.style.transform = `rotate(${relativeAngle}deg)`;
-    }
-
     function setStatus(msg, isError = false) {
       statusEl.textContent = msg;
       statusEl.className = isError ? "status error" : "status";
     }
 
+    function cardinalFromBearing(bearing) {
+      const dirs = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"];
+      return dirs[Math.round(bearing / 45) % 8];
+    }
+
+    // ===== BRÚJULA =====
+    function getRelativeNeedleAngle() {
+      if (targetBearing == null) return 0;
+      if (correctedHeading == null) return targetBearing;
+      return normalizeDeg(targetBearing - correctedHeading);
+    }
+
+    function updateComputedData() {
+      if (userLat == null || userLon == null) return;
+
+      targetBearing = calculateBearing(userLat, userLon, TARGET_LAT, TARGET_LON);
+      const distance = calculateDistance(userLat, userLon, TARGET_LAT, TARGET_LON);
+
+      bearingText.textContent = `${targetBearing.toFixed(1)}° (${cardinalFromBearing(targetBearing)})`;
+      distanceText.textContent =
+        distance >= 1000 ? `${(distance / 1000).toFixed(2)} km` : `${Math.round(distance)} m`;
+
+      accuracyText.textContent =
+        userAccuracy != null ? `± ${Math.round(userAccuracy)} m` : "—";
+
+      if (correctedHeading != null) {
+        headingText.textContent = `${correctedHeading.toFixed(1)}°`;
+      } else {
+        headingText.textContent = "No disponible";
+      }
+
+      const rel = getRelativeNeedleAngle();
+      bearingPill.textContent = `Aguja apuntando: ${rel.toFixed(1)}°`;
+      updateMapGraphics();
+    }
+
+    function renderNeedle() {
+      const targetAngle = getRelativeNeedleAngle();
+      displayedNeedleAngle = smoothAngle(displayedNeedleAngle, targetAngle, 0.18);
+
+      needle.style.transform =
+        `translate(-50%, -50%) rotate(${displayedNeedleAngle}deg)`;
+
+      requestAnimationFrame(renderNeedle);
+    }
+
+    function startNeedleAnimation() {
+      if (animationRunning) return;
+      animationRunning = true;
+      renderNeedle();
+    }
+
+    function updateHeading(newHeading) {
+      rawHeading = normalizeDeg(newHeading);
+      correctedHeading = normalizeDeg(rawHeading + calibrationOffset);
+      updateComputedData();
+    }
+
     function handleOrientation(event) {
       let heading = null;
 
-      // iPhone / Safari
+      // Safari iPhone
       if (typeof event.webkitCompassHeading === "number") {
         heading = event.webkitCompassHeading;
       }
-      // Android y otros
-      else if (event.alpha != null) {
+      // Android / otros
+      else if (event.absolute === true && typeof event.alpha === "number") {
+        heading = 360 - event.alpha;
+      }
+      else if (typeof event.alpha === "number") {
         heading = 360 - event.alpha;
       }
 
-      if (heading != null && !isNaN(heading)) {
-        deviceHeading = normalizeDeg(heading);
-        updateCompass();
+      if (heading != null && !Number.isNaN(heading)) {
+        updateHeading(heading);
       }
     }
 
+    // ===== GEOLOCALIZACIÓN =====
     function requestLocation() {
       if (!navigator.geolocation) {
         setStatus("Tu navegador no soporta geolocalización.", true);
         return;
       }
 
-      navigator.geolocation.watchPosition(
+      if (watchId !== null) {
+        navigator.geolocation.clearWatch(watchId);
+      }
+
+      watchId = navigator.geolocation.watchPosition(
         (pos) => {
           userLat = pos.coords.latitude;
           userLon = pos.coords.longitude;
-          updateCompass();
-          setStatus("Ubicación activa. Mueve el teléfono en forma de 8 si la brújula no se estabiliza.");
+          userAccuracy = pos.coords.accuracy;
+          updateComputedData();
+          setStatus("Ubicación activa. Si la aguja oscila, mueve el teléfono en forma de 8 y usa “Recalibrar”.");
         },
         (err) => {
           setStatus("No se pudo obtener la ubicación: " + err.message, true);
@@ -361,14 +608,13 @@
         {
           enableHighAccuracy: true,
           maximumAge: 1000,
-          timeout: 10000
+          timeout: 12000
         }
       );
     }
 
     async function requestOrientation() {
       try {
-        // iOS 13+
         if (
           typeof DeviceOrientationEvent !== "undefined" &&
           typeof DeviceOrientationEvent.requestPermission === "function"
@@ -376,31 +622,128 @@
           const permission = await DeviceOrientationEvent.requestPermission();
           if (permission === "granted") {
             window.addEventListener("deviceorientation", handleOrientation, true);
-            setStatus("Orientación activada.");
+            setStatus("Orientación activada correctamente.");
           } else {
-            setStatus("Permiso de orientación denegado. La aguja mostrará solo el rumbo absoluto.", true);
+            setStatus("Permiso de orientación denegado. La brújula funcionará peor.", true);
           }
         } else {
-          // Android / otros
           window.addEventListener("deviceorientationabsolute", handleOrientation, true);
           window.addEventListener("deviceorientation", handleOrientation, true);
-          setStatus("Orientación activada.");
+          setStatus("Orientación activada correctamente.");
         }
       } catch (e) {
         setStatus("No se pudo activar la orientación: " + e.message, true);
       }
     }
 
+    // ===== RECALIBRACIÓN =====
+    function recalibrateCompass() {
+      if (rawHeading == null || targetBearing == null) {
+        setStatus("Activa primero la brújula para recalibrar.", true);
+        return;
+      }
+
+      // Ajusta el heading actual para que la aguja no pegue un salto brusco.
+      // Conservamos el ángulo visible actual y corregimos el offset con base en eso.
+      const visibleAngle = displayedNeedleAngle;
+      const desiredHeading = normalizeDeg(targetBearing - visibleAngle);
+      calibrationOffset = shortestAngleDiff(rawHeading, desiredHeading);
+
+      correctedHeading = normalizeDeg(rawHeading + calibrationOffset);
+      updateComputedData();
+      setStatus("Brújula recalibrada. Si sigue inestable, mueve el teléfono en forma de 8.");
+    }
+
+    // ===== MAPA =====
+    function initMap() {
+      map = L.map("map", { zoomControl: true }).setView([TARGET_LAT, TARGET_LON], 16);
+
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19,
+        attribution: "&copy; OpenStreetMap"
+      }).addTo(map);
+
+      targetMarker = L.marker([TARGET_LAT, TARGET_LON])
+        .addTo(map)
+        .bindPopup("<strong>Destino</strong><br>V37P+JQW");
+
+      updateMapGraphics();
+    }
+
+    function updateMapGraphics() {
+      if (!map) return;
+
+      if (userLat != null && userLon != null) {
+        if (!userMarker) {
+          userMarker = L.marker([userLat, userLon]).addTo(map).bindPopup("Tu ubicación");
+        } else {
+          userMarker.setLatLng([userLat, userLon]);
+        }
+
+        if (lineToTarget) {
+          map.removeLayer(lineToTarget);
+        }
+
+        lineToTarget = L.polyline(
+          [
+            [userLat, userLon],
+            [TARGET_LAT, TARGET_LON]
+          ],
+          { weight: 4, opacity: 0.7 }
+        ).addTo(map);
+      }
+    }
+
+    function centerMap() {
+      if (!map) return;
+
+      if (userLat != null && userLon != null) {
+        const bounds = L.latLngBounds(
+          [
+            [userLat, userLon],
+            [TARGET_LAT, TARGET_LON]
+          ]
+        );
+        map.fitBounds(bounds, { padding: [40, 40] });
+      } else {
+        map.setView([TARGET_LAT, TARGET_LON], 17);
+      }
+
+      setTimeout(() => map.invalidateSize(), 250);
+    }
+
+    // ===== EVENTOS =====
     startBtn.addEventListener("click", async () => {
       setStatus("Solicitando permisos...");
       requestLocation();
       await requestOrientation();
+      startNeedleAnimation();
+      setTimeout(centerMap, 1200);
     });
 
+    recalibrateBtn.addEventListener("click", recalibrateCompass);
+
     mapsBtn.addEventListener("click", () => {
-      const url = `https://www.google.com/maps?q=${TARGET_LAT},${TARGET_LON}`;
-      window.open(url, "_blank");
+      window.open(`https://www.google.com/maps?q=${TARGET_LAT},${TARGET_LON}`, "_blank");
     });
+
+    mapBtn.addEventListener("click", centerMap);
+
+    // ===== MARCAS DE LA BRÚJULA =====
+    function addTicks() {
+      const compass = document.getElementById("compass");
+      for (let i = 0; i < 360; i += 15) {
+        const tick = document.createElement("div");
+        tick.className = i % 45 === 0 ? "tick major" : "tick";
+        tick.style.transform = `translateX(-50%) rotate(${i}deg)`;
+        compass.appendChild(tick);
+      }
+    }
+
+    addTicks();
+    initMap();
+    startNeedleAnimation();
+    updateComputedData();
   </script>
 </body>
 </html>
